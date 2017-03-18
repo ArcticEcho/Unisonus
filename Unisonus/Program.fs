@@ -8,6 +8,8 @@ open Discord
 open Discord.Audio
 
 module Program =
+    open YoutubeExtractor
+
     let private client = new DiscordClient()
     let private player = Player(client)
     let private notInVCExTxt = "You need to be in a voice channel for me to play music!"
@@ -27,7 +29,10 @@ module Program =
     let handlePlayCmd (msg : MessageEventArgs) =
         match msg.User.VoiceChannel with
         | null -> msg.Channel.SendMessage(notInVCExTxt) |> ignore
-        | _ -> player.Play msg |> Async.Start
+        | _ ->
+            let title = player.Play msg
+            if title <> null then
+                msg.Channel.SendMessage("Now playing " + title) |> ignore
 
     let private handleCommand (msg : MessageEventArgs) =
         let cmdTxt = msg.Message.Text.Remove(0, 1).ToUpperInvariant()
@@ -35,11 +40,10 @@ module Program =
         | _ when cmdTxt.StartsWith("HELP") -> 
             msg.Channel.SendMessage(helpCmdTxt.Trim()) |> ignore
         | _ when cmdTxt.StartsWith("PLAY") -> handlePlayCmd msg
-        | _ when cmdTxt.StartsWith("STOP") ->
-            player.Stop()
+        | _ when cmdTxt.StartsWith("STOP") -> player.Stop()
         | _ when cmdTxt.StartsWith("NOWPLAYING") -> ()
         | _ when cmdTxt.StartsWith("LIST") -> ()
-        | _ when cmdTxt.StartsWith("REMOVE") -> ()
+        | _ when cmdTxt.StartsWith("REMOVE") -> player.RemoveSong <| cmdTxt.Remove(0, 6).Trim()
         | _ when cmdTxt.StartsWith("REPEAT") -> ()
         | _ when cmdTxt.StartsWith("SHUFFLE") -> ()
         | _ -> ()
