@@ -22,19 +22,23 @@ type Player (client : DiscordClient) =
     let frameSize = avgBytesPerSec / framesPerSec
     let mutable currentVC : Channel = null
     let mutable currentAC : IAudioClient = null
+    let mutable isActive = false
+    let mutable stop = false
+    let mutable clear = false
 
-    member this.Play (cmdMsg : MessageEventArgs) = async {
+    let playSong (cmdMsg : MessageEventArgs) = async {
+        isActive <- true
         currentVC <- cmdMsg.User.VoiceChannel
         let audioService = client.GetService<AudioService>()
         let! ac = audioService.Join(currentVC) |> Async.AwaitTask
         currentAC <- ac
-        let ffmpegProc = Process.Start ffmpegPsi
-        Thread.Sleep 1000
         let bufferedFrames = Queue<byte[]>()
         let mutable fileFullyRead = false
+        let ffmpegMre = new ManualResetEvent false
+        let ffmpegProc = Process.Start ffmpegPsi
         async {
-            while not fileFullyRead do
-                while bufferedFrames.Count > targetBufferFrames do
+            while not fileFullyRead && not clear do
+                while bufferedFrames.Count > targetBufferFrames && not clear do
                     Thread.Sleep 5
                 let b = Array.zeroCreate<byte>(frameSize)
                 let byteCount = ffmpegProc.StandardOutput.BaseStream.Read(b, 0, b.Length)
@@ -42,11 +46,28 @@ type Player (client : DiscordClient) =
                     fileFullyRead <- true
                 bufferedFrames.Enqueue b
                 Thread.Sleep 15
+            ffmpegProc.Close()
+            ffmpegMre.Set() |> ignore
         } |> Async.Start
         while bufferedFrames.Count < targetBufferFrames do
             Thread.Sleep 100
-        while bufferedFrames.Count > 0 do
+        while bufferedFrames.Count > 0 && not clear do
             let b =  bufferedFrames.Dequeue()
             currentAC.Send(b, 0, b.Length)
+            if stop then
+                currentAC.Send(Array.zeroCreate<byte>(frameSize), 0, frameSize)
+                while stop do
+                    Thread.Sleep 250
         currentAC.Wait()
+        ffmpegMre.WaitOne() |> ignore
+        isActive <- false //TODO: wait for ffmpeg to stop
     }
+
+    member this.Play (cmdMsg : MessageEventArgs) = async {
+        match isActive, stop with
+        | true, true -> stop <- false
+        | false, false -> do! playSong cmdMsg
+        | _ -> failwith "Unsupport operation."
+    }
+
+    member this.Stop() = stop <- true

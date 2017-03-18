@@ -35,7 +35,8 @@ module Program =
         | _ when cmdTxt.StartsWith("HELP") -> 
             msg.Channel.SendMessage(helpCmdTxt.Trim()) |> ignore
         | _ when cmdTxt.StartsWith("PLAY") -> handlePlayCmd msg
-        | _ when cmdTxt.StartsWith("STOP") -> ()
+        | _ when cmdTxt.StartsWith("STOP") ->
+            player.Stop()
         | _ when cmdTxt.StartsWith("NOWPLAYING") -> ()
         | _ when cmdTxt.StartsWith("LIST") -> ()
         | _ when cmdTxt.StartsWith("REMOVE") -> ()
@@ -54,6 +55,7 @@ module Program =
         client.Connect(Config.BotToken, TokenType.Bot)
         |> Async.AwaitTask
         |> Async.RunSynchronously
+        client.SetGame(Game("idle"))
         while true do
             Thread.Sleep 1000
         0
