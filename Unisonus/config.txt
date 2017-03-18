@@ -1,0 +1,2 @@
+﻿FFmpegPath: C:\Program Files\ffmpeg\bin\ffmpeg.exe
+BotToken: blahblahblahblahblahblahblah
