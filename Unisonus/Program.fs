@@ -57,6 +57,13 @@ module Program =
         client.MessageReceived.Add (fun (e : MessageEventArgs) ->
             match e with
             | _ when e.Message.Text.StartsWith(">") -> handleCommand e
+            | _ when e.Message.Text = ">VC_TEST" ->
+                try
+                    let audioService = client.GetService<AudioService>()
+                    let ac = audioService.Join(e.User.VoiceChannel) |> Async.AwaitTask |> Async.RunSynchronously
+                    e.Channel.SendMessage("Success!") |> ignore
+                with
+                | _ as ex -> Console.WriteLine ex
             | _ -> ()
         )
         client.UsingAudio(fun x -> x.Mode <- AudioMode.Outgoing) |> ignore
