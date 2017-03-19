@@ -16,7 +16,8 @@ module Program =
     let private helpCmdTxt = """
 **play**              - plays a new song/adds a song to the queue/resumes playing if stopped.
 **stop**              - stops playing music.
-**nowplaying** - posts info on the currently playing song.
+**skip**               - skips the current song.
+**nowplaying** - posts info on the current song.
 **list**                 - lists the next 10 songs in the queue.
 **shuffle**          - randomises the song queue order.
 **remove** <*all*|*song name*>
@@ -24,15 +25,18 @@ module Program =
     - *song name*: removes the song whose title matchs the inputted text.
 **repeat** <*all*|*one*>
     - *all*: repeats the entire queue.
-    - *one*: repeats the currently playing song."""
+    - *one*: repeats the current song.
+"""
 
     let handlePlayCmd (msg : MessageEventArgs) =
         match msg.User.VoiceChannel with
         | null -> msg.Channel.SendMessage(notInVCExTxt) |> ignore
         | _ ->
-            let title = player.Play msg
-            if title <> null then
-                msg.Channel.SendMessage("Now playing " + title) |> ignore
+            if player.IsPaused then
+                player.Resume()
+            else
+                player.Play msg
+                msg.Channel.SendMessage("Song added to the queue.") |> ignore
 
     let private handleCommand (msg : MessageEventArgs) =
         let cmdTxt = msg.Message.Text.Remove(0, 1).ToUpperInvariant()
