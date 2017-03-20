@@ -50,11 +50,5 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\YoutubeExtractor\YoutubeExtractor\YoutubeExtractor\YoutubeExtractor.csproj">
-      <Project>{ecdc127f-8def-4f99-8300-72c13597339d}</Project>
-      <Name>YoutubeExtractor</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

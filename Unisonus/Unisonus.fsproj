@@ -60,11 +60,6 @@
     <Compile Include="Player.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
-    <Content Include="config.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <None Include="libsodium.dll" />
-    <None Include="opus.dll" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
