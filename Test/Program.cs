@@ -33,29 +33,38 @@ namespace Test
                     var avgBytesPerSec = 48000 * 2 * 2;
                     var frameSize = avgBytesPerSec / framesPerSec;
                     var audioService = client.GetService<AudioService>();
+                    Console.WriteLine(1);
                     var audioClient = await audioService.Join(e.User.VoiceChannel);//.ConfigureAwait(true);
+                    Console.WriteLine(2);
 
                     var bufferedFrames = new Queue<byte[]>();
                     var fileFullyRead = false;
                     var ffmpegMre = new ManualResetEvent(false);
                     Task.Run(() =>
                     {
-                        var ffmpegProc = Process.Start(ffmpegPsi);
-                        while (!fileFullyRead)
+                        try
                         {
-                            while (bufferedFrames.Count > targetBufferFrames)
+                            var ffmpegProc = Process.Start(ffmpegPsi);
+                            while (!fileFullyRead)
                             {
-                                Thread.Sleep(5);
+                                while (bufferedFrames.Count > targetBufferFrames)
+                                {
+                                    Thread.Sleep(5);
+                                }
+                                var b = new byte[frameSize];
+                                var byteCount = ffmpegProc.StandardOutput.BaseStream.Read(b, 0, b.Length);
+                                if (byteCount == 0)
+                                    fileFullyRead = true;
+                                bufferedFrames.Enqueue(b);
+                                Thread.Sleep(15);
                             }
-                            var b = new byte[frameSize];
-                            var byteCount = ffmpegProc.StandardOutput.BaseStream.Read(b, 0, b.Length);
-                            if (byteCount == 0)
-                                fileFullyRead = true;
-                            bufferedFrames.Enqueue(b);
-                            Thread.Sleep(15);
+                            ffmpegProc.Close();
+                            ffmpegMre.Set();
                         }
-                        ffmpegProc.Close();
-                        ffmpegMre.Set();
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
                     });
                     while (bufferedFrames.Count < targetBufferFrames)
                     {
