@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using DSharpPlus;
+using Discord;
+using Discord.Audio;
 
-namespace UnisonusSharp
+namespace Unisonus
 {
     public class Program
     {
@@ -30,29 +31,19 @@ namespace UnisonusSharp
 
         public static void Main(string[] args)
         {
-            var config = new DiscordConfig
-            {
-                AutoReconnect = true,
-                DiscordBranch = Branch.Stable,
-                LargeThreshold = 250,
-                Token = Config.BotToken,
-                TokenType = TokenType.Bot,
-                UseInternalLogHandler = false
-            };
-
-            client = new DiscordClient(config);
+            client = new DiscordClient();
             player = new Player(client);
+            client.UsingAudio(x => x.Mode = AudioMode.Outgoing);
 
-            client.MessageCreated += async e =>
+            client.MessageReceived += (o, e) =>
             {
-                if (e.Message.Content.StartsWith(">"))
+                if (e.Message.Text.StartsWith(">"))
                 {
                     HandleCommand(e);
                 }
-                await Task.Delay(0);
             };
-            client.Connect().Wait();
-            client.UpdateStatus("idle").Wait();
+            client.Connect(Config.BotToken, TokenType.Bot).Wait();
+            client.SetGame(new Game("idle"));
 
             while (true)
             {
@@ -60,9 +51,9 @@ namespace UnisonusSharp
             }
         }
 
-        private static void HandleCommand(MessageCreateEventArgs msg)
+        private static void HandleCommand(MessageEventArgs msg)
         {
-            var cmdTxt = msg.Message.Content.Remove(0, 1).ToUpperInvariant();
+            var cmdTxt = msg.Message.Text.Remove(0, 1).ToUpperInvariant();
 
             if (cmdTxt == "HELP")
             {
@@ -83,9 +74,9 @@ namespace UnisonusSharp
             }
         }
 
-        private static void HandlePlayCmd(MessageCreateEventArgs msg)
+        private static void HandlePlayCmd(MessageEventArgs msg)
         {
-            var isInVc = msg.Guild.VoiceStates.Exists(vs => vs.UserID == msg.Author.ID);
+            var isInVc = msg.User.VoiceChannel != null;
 
             if (!isInVc)
             {
@@ -100,7 +91,7 @@ namespace UnisonusSharp
             else
             {
                 player.Play(msg);
-                msg.Channel.SendMessage("Song added to the queue.").Wait();
+                //msg.Channel.SendMessage("Song added to the queue.").Wait();
             }
         }
     }

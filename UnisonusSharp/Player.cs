@@ -3,48 +3,56 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using DSharpPlus;
-using DSharpPlus.VoiceNext;
+using Discord;
+using Discord.Audio;
 using YoutubeExtractor;
 
-namespace UnisonusSharp
+namespace Unisonus
 {
     class Player
     {
         private class SongQueueItem
         {
-            public MessageCreateEventArgs Msg { get; set; }
+            public MessageEventArgs Msg { get; set; }
             public VideoInfo VidInfo { get; set; }
-            public string Filename { get; set; }
+            //public string Filename { get; set; }
         }
 
+        private readonly string vidDir = Path.Combine(".", "vids");
         private readonly DiscordClient client;
         private ProcessStartInfo ffmpegPsi = new ProcessStartInfo
         {
             FileName = Config.Ffmpeg,
-            Arguments = "-i $file$ -f s16le -ar 48000 -ac 2 pipe:1",
-            UseShellExecute = false,
-            RedirectStandardOutput = true
+            Arguments = "-i $path$ -f s16le -ar 48000 -ac 2 pipe:1",
+            RedirectStandardOutput = true,
+            RedirectStandardInput = true,
+            UseShellExecute = false
         };
         private List<SongQueueItem> fetchedSongs = new List<SongQueueItem>();
-        private List<MessageCreateEventArgs> songFetcherQueue = new List<MessageCreateEventArgs>();
+        private List<MessageEventArgs> songFetcherQueue = new List<MessageEventArgs>();
         private static bool isActive = false;
         private static bool stop = false;
         private static bool clear = false;
-        private static int frameSizeMs = 60;
+        private static int framesPerSec = 50;
         private static int targetBufferSecs = 5;
-        private static int targetBufferFrames = (1000 / frameSizeMs) * targetBufferSecs;
+        private static int targetBufferFrames = framesPerSec * targetBufferSecs;
         private static int avgBytesPerSec = 48000 * 2 * 2;
-        private static int frameSize = avgBytesPerSec / 1000 * frameSizeMs;
+        private static int frameSize = avgBytesPerSec / framesPerSec;
 
-        public bool IsPaused { get; private set; } = stop;
+        public bool IsPaused => isActive && stop;
 
 
 
         public Player(DiscordClient client)
         {
+            if (!Directory.Exists(vidDir))
+            {
+                Directory.CreateDirectory(vidDir);
+            }
+
             this.client = client;
             Task.Run(() => SongFetcherQueueLoop());
             Task.Run(() => SongPlayerQueueLoop());
@@ -52,7 +60,7 @@ namespace UnisonusSharp
 
 
 
-        public void Play(MessageCreateEventArgs cmdMsg) => songFetcherQueue.Add(cmdMsg);
+        public void Play(MessageEventArgs cmdMsg) => songFetcherQueue.Add(cmdMsg);
 
         public void Resume() => stop = false;
 
@@ -70,10 +78,10 @@ namespace UnisonusSharp
                     Thread.Sleep(100);
                 }
 
-                foreach (var item in fetchedSongs)
-                {
-                    File.Delete(item.Filename);
-                }
+                //foreach (var item in fetchedSongs)
+                //{
+                //    File.Delete(item.Filename);
+                //}
 
                 fetchedSongs.Clear();
             }
@@ -87,15 +95,31 @@ namespace UnisonusSharp
 
                 if (songFetcherQueue.Count > 0 && fetchedSongs.Count < 3)
                 {
-                    var msg = songFetcherQueue[0];
-                    songFetcherQueue.RemoveAt(0);
-                    var kv = FetchSong(msg);
-                    fetchedSongs.Add(new SongQueueItem
+                    MessageEventArgs msg = null;
+
+                    try
                     {
-                        Msg = msg,
-                        VidInfo = kv.Key,
-                        Filename = kv.Value
-                    });
+                        msg = songFetcherQueue[0];
+                        songFetcherQueue.RemoveAt(0);
+                        var kv = FetchSong(msg);
+                        fetchedSongs.Add(new SongQueueItem
+                        {
+                            Msg = msg,
+                            VidInfo = kv/*kv.Key,*/
+                            //Filename = kv.Value
+                        });
+                    }
+                    catch (Exception)
+                    {
+                        try
+                        {
+                            msg.Channel.SendMessage($"Sorry, I can't play `{msg.Message.Text.Remove(0, 5).Trim()}`");
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
                 }
             }
         }
@@ -108,54 +132,76 @@ namespace UnisonusSharp
 
                 if (fetchedSongs.Count > 0)
                 {
-                    var song = fetchedSongs[0];
-                    fetchedSongs.RemoveAt(0);
-                    client.UpdateStatus(song.VidInfo.Title).Wait();
-                    song.Msg.Channel.SendMessage("Now playing " + song.VidInfo.Title).Wait();
-                    PlaySong(song.Msg, song.Filename);
-                    client.UpdateStatus("idle").Wait();
-                    File.Delete(song.Filename);
+                    SongQueueItem song = null;
+
+                    try
+                    {
+                        song = fetchedSongs[0];
+                        fetchedSongs.RemoveAt(0);
+                        client.SetGame(new Game(song.VidInfo.Title));
+                        song.Msg.Channel.SendMessage("Now playing " + song.VidInfo.Title).Wait();
+                        PlaySong(song.Msg, song.VidInfo/*, song.Filename*/).Wait();
+                        client.SetGame(new Game("idle"));
+
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            if (song == null) throw;
+
+                            var innerMostEx = ex;
+
+                            while (innerMostEx.InnerException != null)
+                            {
+                                innerMostEx = innerMostEx.InnerException;
+                            }
+
+                            song.Msg.Channel.SendMessage($"Sorry, I encountered an error while playing {song.VidInfo.Title}: " + innerMostEx.Message);
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
                 }
             }
         }
 
-        private KeyValuePair<VideoInfo, string> FetchSong(MessageCreateEventArgs msg)
+        private /*KeyValuePair<*/VideoInfo/*, string>*/ FetchSong(MessageEventArgs msg)
         {
-            var link = msg.Message.Content.Remove(0, 5).Trim();
+            var link = msg.Message.Text.Remove(0, 5).Trim();
             var vidInfo = DownloadUrlResolver.GetDownloadUrls(link)
-                .Where(x => x.VideoType == VideoType.Mp4 && x.AudioBitrate != 0)
+                .Where(x => x.VideoType == VideoType.WebM && x.AudioBitrate != 0)
                 .OrderByDescending(x => x.AudioBitrate)
                 .First();
             if (vidInfo.RequiresDecryption)
             {
                 DownloadUrlResolver.DecryptDownloadUrl(vidInfo);
             }
-            var filename = Guid.NewGuid().ToString();
-            var videoDownloader = new VideoDownloader(vidInfo, filename);
-            videoDownloader.Execute();
-            return new KeyValuePair<VideoInfo, string>(vidInfo, filename);
+            //var filename = Path.Combine(vidDir, Guid.NewGuid().ToString());
+            //var videoDownloader = new VideoDownloader(vidInfo, filename);
+            //videoDownloader.Execute();
+            return /*new KeyValuePair<VideoInfo, string>(*/vidInfo;/*, filename);*/
         }
 
-        private void PlaySong(MessageCreateEventArgs cmdMsg, string fileGuid)
+        private async Task PlaySong(MessageEventArgs cmdMsg, VideoInfo vidInfo/*, string filepath*/)
         {
             isActive = true;
-
-            var vState = cmdMsg.Guild.VoiceStates.Where(vs => vs.UserID == cmdMsg.Author.ID).First();
-            var vChannel = client.GetChannel(vState.ChannelID.Value).Result;
-            var vnCfg = new VoiceNextConfiguration
-            {
-                VoiceApplication = DSharpPlus.VoiceNext.Codec.VoiceApplication.LowLatency
-            };
-            var vClient = client.UseVoiceNext(vnCfg);
-            var vConnection = vClient.ConnectAsync(vChannel).Result;
+            stop = false;
+            clear = false;
+            
+            var audioService = client.GetService<AudioService>();
+            var audioClient = await audioService.Join(cmdMsg.User.VoiceChannel);
 
             var bufferedFrames = new Queue<byte[]>();
             var fileFullyRead = false;
             var ffmpegMre = new ManualResetEvent(false);
 
+#pragma warning disable CS4014
             Task.Run(() =>
             {
-                ffmpegPsi.Arguments = ffmpegPsi.Arguments.Replace("$file$", fileGuid);
+                ffmpegPsi.Arguments = ffmpegPsi.Arguments.Replace("$path$", vidInfo.DownloadUrl);
                 var ffmpegProc = Process.Start(ffmpegPsi);
 
                 while (!fileFullyRead && !clear)
@@ -164,46 +210,45 @@ namespace UnisonusSharp
                     {
                         Thread.Sleep(5);
                     }
+
                     var b = new byte[frameSize];
                     var byteCount = ffmpegProc.StandardOutput.BaseStream.Read(b, 0, b.Length);
+
                     if (byteCount == 0)
                     {
                         fileFullyRead = true;
                     }
+
                     bufferedFrames.Enqueue(b);
+
                     Thread.Sleep(15);
                 }
-                ffmpegProc.Close();
+
+                ffmpegProc.CloseMainWindow();
                 ffmpegMre.Set();
             });
+#pragma warning restore CS4014
 
-            while (bufferedFrames.Count < targetBufferFrames)
+            while (bufferedFrames.Count < targetBufferFrames && !clear)
             {
                 Thread.Sleep(100);
             }
 
-            try
+            while (bufferedFrames.Count > 0 && !clear)
             {
-                vConnection.SendSpeakingAsync(true).Wait();
-                while (bufferedFrames.Count > 0 && !clear)
-                {
-                    var b = bufferedFrames.Dequeue();
-                    vConnection.SendAsync(b, frameSizeMs).Wait();
-                    if (stop)
-                    {
-                        vConnection.SendAsync(new byte[frameSize], frameSizeMs).Wait();
+                var b = bufferedFrames.Dequeue();
+                audioClient.Send(b, 0, b.Length);
 
-                        while (stop && !clear)
-                        {
-                            Thread.Sleep(250);
-                        }
+                if (stop)
+                {
+                    b = new byte[frameSize];
+                    audioClient.Send(b, 0, b.Length);
+
+                    while (stop && !clear)
+                    {
+                        Thread.Sleep(250);
                     }
                 }
-                vConnection.SendSpeakingAsync(false).Wait();
-            }
-            catch (Exception ex)
-            {
-                File.AppendAllText("log.txt", "\n\n\n" + ex.ToString());
             }
 
             ffmpegMre.WaitOne();

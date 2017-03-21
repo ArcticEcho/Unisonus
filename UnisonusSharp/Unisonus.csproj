@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6E885454-35C2-4BE1-8C44-F858328B4DED}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>UnisonusSharp</RootNamespace>
-    <AssemblyName>UnisonusSharp</AssemblyName>
+    <RootNamespace>Unisonus</RootNamespace>
+    <AssemblyName>Unisonus</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -49,6 +49,24 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Discord.Net\Discord.Net.Audio\Discord.Net.Audio.csproj">
+      <Project>{b4a59130-ae65-49a5-a79d-c02868ac4b55}</Project>
+      <Name>Discord.Net.Audio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Discord.Net\Discord.Net.Helper\Discord.Net.Helper.csproj">
+      <Project>{66349e83-5497-4247-96f2-8e99103600e1}</Project>
+      <Name>Discord.Net.Helper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Discord.Net\Discord.Net\Discord.Net.csproj">
+      <Project>{2f44a125-cac9-43b8-a06e-bf23fd51271e}</Project>
+      <Name>Discord.Net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\YoutubeExtractor\YoutubeExtractor\YoutubeExtractor\YoutubeExtractor.csproj">
+      <Project>{ecdc127f-8def-4f99-8300-72c13597339d}</Project>
+      <Name>YoutubeExtractor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

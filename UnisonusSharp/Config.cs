@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UnisonusSharp
+namespace Unisonus
 {
     public static class Config
     {

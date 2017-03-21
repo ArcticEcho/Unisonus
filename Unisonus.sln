@@ -3,17 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnisonusSharp", "UnisonusSharp\UnisonusSharp.csproj", "{6E885454-35C2-4BE1-8C44-F858328B4DED}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{2BF57D7D-8ECE-4DCE-88E4-70C4CE725A76}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Unisonus", "Unisonus\Unisonus.fsproj", "{59D0D51E-4444-4CD7-A4E7-99396D53B92B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unisonus", "UnisonusSharp\Unisonus.csproj", "{6E885454-35C2-4BE1-8C44-F858328B4DED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net", "Discord.Net\Discord.Net\Discord.Net.csproj", "{2F44A125-CAC9-43B8-A06E-BF23FD51271E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Audio", "Discord.Net\Discord.Net.Audio\Discord.Net.Audio.csproj", "{B4A59130-AE65-49A5-A79D-C02868AC4B55}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Helper", "Discord.Net\Discord.Net.Helper\Discord.Net.Helper.csproj", "{66349E83-5497-4247-96F2-8E99103600E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeExtractor", "YoutubeExtractor\YoutubeExtractor\YoutubeExtractor\YoutubeExtractor.csproj", "{ECDC127F-8DEF-4F99-8300-72C13597339D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,18 +26,6 @@ Global
 		{6E885454-35C2-4BE1-8C44-F858328B4DED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6E885454-35C2-4BE1-8C44-F858328B4DED}.TestResponses|Any CPU.ActiveCfg = Release|Any CPU
 		{6E885454-35C2-4BE1-8C44-F858328B4DED}.TestResponses|Any CPU.Build.0 = Release|Any CPU
-		{2BF57D7D-8ECE-4DCE-88E4-70C4CE725A76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2BF57D7D-8ECE-4DCE-88E4-70C4CE725A76}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2BF57D7D-8ECE-4DCE-88E4-70C4CE725A76}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2BF57D7D-8ECE-4DCE-88E4-70C4CE725A76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2BF57D7D-8ECE-4DCE-88E4-70C4CE725A76}.TestResponses|Any CPU.ActiveCfg = Release|Any CPU
-		{2BF57D7D-8ECE-4DCE-88E4-70C4CE725A76}.TestResponses|Any CPU.Build.0 = Release|Any CPU
-		{59D0D51E-4444-4CD7-A4E7-99396D53B92B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{59D0D51E-4444-4CD7-A4E7-99396D53B92B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{59D0D51E-4444-4CD7-A4E7-99396D53B92B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{59D0D51E-4444-4CD7-A4E7-99396D53B92B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{59D0D51E-4444-4CD7-A4E7-99396D53B92B}.TestResponses|Any CPU.ActiveCfg = Release|Any CPU
-		{59D0D51E-4444-4CD7-A4E7-99396D53B92B}.TestResponses|Any CPU.Build.0 = Release|Any CPU
 		{2F44A125-CAC9-43B8-A06E-BF23FD51271E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2F44A125-CAC9-43B8-A06E-BF23FD51271E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F44A125-CAC9-43B8-A06E-BF23FD51271E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -58,6 +44,12 @@ Global
 		{66349E83-5497-4247-96F2-8E99103600E1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{66349E83-5497-4247-96F2-8E99103600E1}.TestResponses|Any CPU.ActiveCfg = Release|Any CPU
 		{66349E83-5497-4247-96F2-8E99103600E1}.TestResponses|Any CPU.Build.0 = Release|Any CPU
+		{ECDC127F-8DEF-4F99-8300-72C13597339D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECDC127F-8DEF-4F99-8300-72C13597339D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECDC127F-8DEF-4F99-8300-72C13597339D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECDC127F-8DEF-4F99-8300-72C13597339D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECDC127F-8DEF-4F99-8300-72C13597339D}.TestResponses|Any CPU.ActiveCfg = Release|Any CPU
+		{ECDC127F-8DEF-4F99-8300-72C13597339D}.TestResponses|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
