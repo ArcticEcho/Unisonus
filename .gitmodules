@@ -1,3 +1,6 @@
 [submodule "Discord.Net"]
 	path = Discord.Net
 	url = https://github.com/ArcticEcho/Discord.Net
+[submodule "YoutubeExtractor"]
+	path = YoutubeExtractor
+	url = https://github.com/ArcticEcho/YoutubeExtractor
