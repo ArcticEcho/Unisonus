@@ -49,12 +49,12 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Discord.Net\src\Discord.Net.Audio.Net45\Discord.Net.Audio.csproj">
-      <Project>{7bfef748-b934-4621-9b11-6302e3a9f6b3}</Project>
+    <ProjectReference Include="..\Discord.Net\Discord.Net.Audio\Discord.Net.Audio.csproj">
+      <Project>{b4a59130-ae65-49a5-a79d-c02868ac4b55}</Project>
       <Name>Discord.Net.Audio</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Discord.Net\src\Discord.Net.Net45\Discord.Net.csproj">
-      <Project>{8d71a857-879a-4a10-859e-5ff824ed6688}</Project>
+    <ProjectReference Include="..\Discord.Net\Discord.Net\Discord.Net.csproj">
+      <Project>{2f44a125-cac9-43b8-a06e-bf23fd51271e}</Project>
       <Name>Discord.Net</Name>
     </ProjectReference>
   </ItemGroup>
