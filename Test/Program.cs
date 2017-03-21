@@ -34,7 +34,10 @@ namespace Test
                         var avgBytesPerSec = 48000 * 2 * 2;
                         var frameSize = avgBytesPerSec / framesPerSec;
                         var audioService = client.GetService<AudioService>();
+
+                        Console.WriteLine("1");
                         var audioClient = await audioService.Join(e.User.VoiceChannel);
+                        Console.WriteLine("2");
 
                         var bufferedFrames = new Queue<byte[]>();
                         var fileFullyRead = false;
@@ -64,8 +67,15 @@ namespace Test
                         }
                         while (bufferedFrames.Count > 0)
                         {
-                            var b = bufferedFrames.Dequeue();
-                            audioClient.Send(b, 0, b.Length);
+                            try
+                            {
+                                var b = bufferedFrames.Dequeue();
+                                audioClient.Send(b, 0, b.Length);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex);
+                            }
                         }
                     });
                 }
