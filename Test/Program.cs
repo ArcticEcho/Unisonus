@@ -63,17 +63,25 @@ namespace Test
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
+                            System.IO.File.AppendAllText("log", ex.ToString());
                         }
                     });
                     while (bufferedFrames.Count < targetBufferFrames)
                     {
                         Thread.Sleep(100);
                     }
+                    System.IO.File.WriteAllText("log", "3");
                     while (bufferedFrames.Count > 0)
                     {
-                        var b = bufferedFrames.Dequeue();
-                        audioClient.Send(b, 0, b.Length);
+                        try
+                        {
+                            var b = bufferedFrames.Dequeue();
+                            audioClient.Send(b, 0, b.Length);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.IO.File.AppendAllText("log", ex.ToString());
+                        }
                     }
                 }
             };
